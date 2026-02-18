@@ -1,0 +1,77 @@
+﻿@model System.Collections.Generic.List<AdministrareBlocMVC.Models.PublicareCheltuieliLunare>
+@using AdministrareBlocMVC.Models
+
+@{
+    ViewData["Title"] = "Publicari cheltuieli";
+    var bloc = ViewBag.Bloc as Bloc;
+
+    var ani = ViewBag.AniDisponibili as List<int> ?? new List<int>();
+    int? anSelectat = ViewBag.AnSelectat as int?;
+}
+
+<h1>Publicari cheltuieli (Excel)</h1>
+
+@if (bloc != null)
+{
+    <div class="mb-2">
+        <b>Bloc:</b> @bloc.Nume <br />
+        <span class="text-muted">@bloc.Adresa</span>
+    </div>
+}
+
+<a class="btn btn-secondary mb-3" asp-action="ListaPeBloc" asp-route-id="@bloc?.Id">Inapoi</a>
+
+<form method="get" asp-action="PublicariBloc" class="row g-2 mb-3">
+    <input type="hidden" name="blocId" value="@bloc?.Id" />
+
+    <div class="col-auto">
+        <select name="an" class="form-select">
+            <option value="">Toti anii</option>
+            @foreach (var a in ani)
+            {
+                <option value="@a" selected="@(anSelectat == a)">@a</option>
+            }
+        </select>
+    </div>
+
+    <div class="col-auto">
+        <button type="submit" class="btn btn-primary">Filtreaza</button>
+    </div>
+</form>
+
+@if (!Model.Any())
+{
+    <div class="alert alert-info">Nu exista publicari inca.</div>
+}
+else
+{
+    <table class="table table-striped table-bordered align-middle">
+        <thead class="table-light">
+            <tr>
+                <th>Luna/An</th>
+                <th>Scara</th>
+                <th>Data publicare</th>
+                <th>Data colectare</th>
+                <th style="width:180px;">Actiuni</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var p in Model)
+            {
+                <tr>
+                    <td>@($"{p.Luna:D2}/{p.An}")</td>
+                    <td>@(string.IsNullOrWhiteSpace(p.Scara) ? "-" : p.Scara)</td>
+                    <td>@p.DataPublicare.ToString("dd.MM.yyyy HH:mm")</td>
+                    <td>@p.DataColectare.ToString("dd.MM.yyyy HH:mm")</td>
+                    <td>
+                        <a class="btn btn-sm btn-success"
+                           asp-action="DescarcaPublicare"
+                           asp-route-id="@p.Id">
+                            Descarca
+                        </a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}

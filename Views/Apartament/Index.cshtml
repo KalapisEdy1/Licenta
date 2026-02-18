@@ -1,0 +1,46 @@
+﻿@model IEnumerable<AdministrareBlocMVC.Models.Bloc>
+
+@{
+    ViewData["Title"] = "Apartamente - Alege bloc";
+}
+
+<div class="d-flex justify-content-end mb-2">
+    <form asp-action="Cautare"
+          method="get"
+          class="d-flex align-items-center gap-2">
+
+        <label for="q"
+               class="fw-bold text-dark mb-0"
+               style="white-space: nowrap;">
+            Cautare apartament dupa Nume Proprietar:
+        </label>
+
+        <input id="q" type="text" name="q"
+               class="form-control form-control-sm"
+               style="max-width:220px;" />
+
+        <button type="submit" class="btn btn-sm btn-primary">
+            Cauta
+        </button>
+    </form>
+</div>
+
+<div class="mb-3">
+    <a asp-action="Create" class="btn btn-primary">
+        Adauga apartament
+    </a>
+</div>
+
+<div class="row">
+    @foreach (var b in Model)
+    {
+        <div class="col-md-4 mb-3">
+            <a asp-action="ListaPeBloc" asp-route-id="@b.Id" class="text-decoration-none">
+                <div class="border rounded p-3 shadow-sm">
+                    <h5 class="mb-1">@b.Nume</h5>
+                    <div class="text-muted">@b.Adresa</div>
+                </div>
+            </a>
+        </div>
+    }
+</div>

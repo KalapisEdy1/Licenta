@@ -1,0 +1,46 @@
+﻿@model IEnumerable<AdministrareBlocMVC.Models.Bloc>
+
+@{
+    ViewData["Title"] = "Adauga";
+}
+
+<h1>Adauga</h1>
+<a asp-action="Create" class="btn btn-primary">
+    Adauga Bloc
+</a>
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+                @Html.DisplayNameFor(model => model.Nume)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Adresa)
+            </th>
+            <th>
+                Scara
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Nume)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Adresa)
+                </td>
+                <td>
+                    @(string.IsNullOrWhiteSpace(item.Scari) ? "-" : item.Scari)
+                </td>
+                <td>
+                    <a asp-action="Edit" class="btn btn-warning" asp-route-id="@item.Id">Editeaza</a>
+                    <a asp-action="Delete" class="btn btn-danger" asp-route-id="@item.Id">Sterge</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

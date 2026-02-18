@@ -1,0 +1,62 @@
+﻿@model AdministrareBlocMVC.Models.Apartament
+
+@{
+    ViewData["Title"] = "Details";
+}
+
+<h1>Detalii apartament</h1>
+
+<div>
+    <h4>Apartament</h4>
+    <hr />
+    <dl class="row">
+
+        <dt class="col-sm-2">Numar</dt>
+        <dd class="col-sm-10">@Model.Numar</dd>
+
+        <dt class="col-sm-2">Etaj</dt>
+        <dd class="col-sm-10">@Model.Etaj</dd>
+
+        <dt class="col-sm-2">Scara</dt>
+        <dd class="col-sm-10">
+            @(string.IsNullOrWhiteSpace(Model.Scara) ? "-" : Model.Scara)
+        </dd>
+
+        <dt class="col-sm-2">Bloc</dt>
+        <dd class="col-sm-10">@Model.Bloc?.Nume</dd>
+
+        <dt class="col-sm-2">Nume Proprietar</dt>
+        <dd class="col-sm-10">@Model.NumeProprietar</dd>
+
+        <dt class="col-sm-2">Camere</dt>
+        <dd class="col-sm-10">@Model.NumarCamere</dd>
+
+        <dt class="col-sm-2">Suprafata</dt>
+        <dd class="col-sm-10">@Model.SuprafataMp</dd>
+
+        <dt class="col-sm-2">Numar Persoane</dt>
+        <dd class="col-sm-10">
+            @(Model.NrPersoane > 0 ? Model.NrPersoane.ToString() : "-")
+        </dd>
+
+        <dt class="col-sm-2">Telefon Proprietar</dt>
+        <dd class="col-sm-10">@Model.TelefonProprietar</dd>
+
+        <dt class="col-sm-2">Nume Chirias</dt>
+        <dd class="col-sm-10">
+            @(Model.Chirias == null ? "-" : Model.Chirias.NumeChirias)
+        </dd>
+
+        <dt class="col-sm-2">Telefon Chirias</dt>
+        <dd class="col-sm-10">
+            @(Model.Chirias == null ? "-" : Model.Chirias.TelefonChirias)
+        </dd>
+
+    </dl>
+</div>
+
+<div>
+    <a asp-action="Index" class="btn btn-secondary ms-2">
+        Inapoi la blocuri
+    </a>
+</div>

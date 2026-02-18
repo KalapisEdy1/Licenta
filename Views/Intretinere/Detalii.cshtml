@@ -1,0 +1,161 @@
+﻿@model AdministrareBlocMVC.Models.Intretinere
+@using AdministrareBlocMVC.Models
+
+@{
+    ViewData["Title"] = "Detalii intretinere";
+    bool estePlatita = Model.StatusPlata == StatusPlata.Platita;
+
+    var scaraTxt = (Model.Apartament != null && !string.IsNullOrWhiteSpace(Model.Apartament.Scara))
+        ? $" - Scara {Model.Apartament.Scara}"
+        : "";
+}
+
+<h1>Detalii intretinere</h1>
+
+<div class="mb-3">
+    <div><b>Bloc:</b> @Model.Apartament?.Bloc?.Nume@scaraTxt</div>
+    <div><b>Apartament:</b> @Model.Apartament?.Numar (Etaj @Model.Apartament?.Etaj)</div>
+
+    <div><b>Luna/An:</b> @($"{Model.Luna:D2}/{Model.An}")</div>
+    <div><b>Total:</b> @($"{Model.Total} RON")</div>
+
+    <div class="mt-2">
+        <b>Status:</b>
+        @if (estePlatita)
+        {
+            <span class="badge bg-success">Platita</span>
+        }
+        else
+        {
+            <span class="badge bg-warning text-dark">Neplatita</span>
+        }
+    </div>
+</div>
+
+<a class="btn btn-secondary mb-3"
+   asp-action="ListaPeBloc"
+   asp-route-id="@Model.Apartament?.BlocId">Inapoi la bloc</a>
+
+@if (!estePlatita)
+{
+    <form asp-action="MarcheazaPlatita" method="post" class="d-inline">
+        @Html.AntiForgeryToken()
+        <input type="hidden" name="id" value="@Model.Id" />
+        <button class="btn btn-success mb-3" type="submit">Marcheaza platita</button>
+    </form>
+}
+
+@if (TempData["Err"] != null)
+{
+    <div class="alert alert-danger">@TempData["Err"]</div>
+}
+
+<hr />
+
+@if (estePlatita)
+{
+    <div class="alert alert-info">
+        Intretinerea este PLATITA. Nu se mai pot adauga/sterge cheltuieli.
+    </div>
+}
+else
+{
+    <h4>Adauga detaliu</h4>
+    <form asp-action="AdaugaDetaliu" method="post" class="mb-3" id="frmAdaugaDetaliu">
+        @Html.AntiForgeryToken()
+        <input type="hidden" name="intretinereId" value="@Model.Id" />
+
+        <div class="row">
+            <div class="col-md-6">
+                <label>Tip cheltuiala</label>
+                <select name="tipCheltuiala" class="form-control">
+                    @foreach (TipCheltuiala t in Enum.GetValues(typeof(TipCheltuiala)))
+                    {
+                        <option value="@t">@t</option>
+                    }
+                </select>
+            </div>
+
+            <div class="col-md-4">
+                <label>Suma</label>
+
+                <input id="txtSuma"
+                       type="text"
+                       inputmode="decimal"
+                       class="form-control"
+                       placeholder="ex: 24,2"
+                       autocomplete="off" />
+
+                <!-- ✅ input real trimis la server (NU schimba controller-ul) -->
+                <input type="hidden" name="suma" id="hdnSuma" />
+            </div>
+
+            <div class="col-md-2 d-flex align-items-end">
+                <button type="submit" class="btn btn-primary w-100">Adauga</button>
+            </div>
+        </div>
+    </form>
+}
+
+<h4>Detalii</h4>
+
+@if (Model.Detalii == null || Model.Detalii.Count == 0)
+{
+    <div class="alert alert-info">Nu exista detalii inca.</div>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Cheltuiala</th>
+                <th>Suma</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var d in Model.Detalii.OrderByDescending(x => x.Id))
+            {
+                <tr>
+                    <td>@d.TipCheltuiala.ToString()</td>
+                    <td>@d.Suma RON</td>
+                    <td>
+                        @if (!estePlatita)
+                        {
+                            <form asp-action="StergeDetaliu" method="post" style="display:inline;">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="id" value="@d.Id" />
+                                <button class="btn btn-sm btn-danger" type="submit">Sterge</button>
+                            </form>
+                        }
+                        else
+                        {
+                            <span class="text-muted">—</span>
+                        }
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@section Scripts {
+    <script>
+        (function () {
+            const frm = document.getElementById("frmAdaugaDetaliu");
+            if (!frm) return;
+
+            const txt = document.getElementById("txtSuma");
+            const hdn = document.getElementById("hdnSuma");
+
+            frm.addEventListener("submit", function (e) {
+                let v = (txt.value || "").trim();
+
+                v = v.replace(/\s/g, "");
+                v = v.replace(/\./g, ",");
+
+                hdn.value = v;
+            });
+        })();
+    </script>
+}

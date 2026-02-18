@@ -1,0 +1,163 @@
+﻿@model IEnumerable<AdministrareBlocMVC.Models.Apartament>
+
+@{
+    ViewData["Title"] = "Intretinere pe bloc";
+    var bloc = ViewBag.Bloc as AdministrareBlocMVC.Models.Bloc;
+    var intretineri = ViewBag.Intretineri as List<AdministrareBlocMVC.Models.Intretinere>;
+
+    var scari = Model
+        .Select(a => a.Scara)
+        .Where(s => !string.IsNullOrWhiteSpace(s))
+        .Select(s => s.Trim())
+        .Distinct(StringComparer.OrdinalIgnoreCase)
+        .OrderBy(s => s)
+        .ToList();
+}
+
+<div class="d-flex justify-content-between align-items-center mb-2">
+    <div>
+        <h1 class="mb-0">Intretinere - @bloc?.Nume</h1>
+        <p class="text-muted mb-0">@bloc?.Adresa</p>
+    </div>
+
+    <div class="d-flex align-items-center gap-2">
+        <a class="btn btn-outline-primary"
+           asp-action="ExportCheltuieliApLuna"
+           asp-route-blocId="@bloc?.Id">
+            Publica Intretineri
+        </a>
+
+        <a class="btn btn-outline-secondary"
+           asp-action="PublicariBloc"
+           asp-route-blocId="@bloc?.Id">
+            Istoric intretineri publicate
+        </a>
+    </div>
+
+    <br />
+    <div>
+        @if (scari.Count > 0)
+        {
+            <div class="d-flex align-items-center gap-2">
+                <label for="filtruScara"
+                       class="fw-bold text-dark mb-0"
+                       style="white-space: nowrap; font-size: 1.05rem;">
+                    Filtru scara:
+                </label>
+
+                <select id="filtruScara"
+                        class="form-select form-select-sm"
+                        style="min-width: 220px;">
+                    <option value="">Selecteaza o scara (toate)</option>
+                    @foreach (var s in scari)
+                    {
+                        <option value="@s">Scara @s</option>
+                    }
+                </select>
+            </div>
+        }
+    </div>
+</div>
+
+<a asp-action="Index" class="btn btn-secondary mb-3">Inapoi la blocuri</a>
+
+<table class="table table-striped table-bordered align-middle" id="tblApartamente">
+    <thead class="table-light">
+        <tr>
+            <th>Ap</th>
+            <th>Etaj</th>
+            <th>Scara</th>
+            <th style="width:150px;text-align:center;">Numar Persoane</th>
+            <th style="width: 200px;">Actiuni</th>
+            <th>Ultimele intretineri</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var a in Model)
+        {
+            var intrAp = intretineri?
+            .Where(i => i.ApartamentId == a.Id)
+            .OrderByDescending(i => i.An)
+            .ThenByDescending(i => i.Luna)
+            .Take(3)
+            .ToList();
+
+            var scaraVal = string.IsNullOrWhiteSpace(a.Scara) ? "" : a.Scara.Trim();
+
+            <tr data-scara="@scaraVal">
+                <td>@a.Numar</td>
+                <td>@a.Etaj</td>
+                <td>
+                    @if (string.IsNullOrWhiteSpace(scaraVal))
+                    {
+                        <span class="text-muted">-</span>
+                    }
+                    else
+                    {
+                        <span>Scara @scaraVal</span>
+                    }
+                </td>
+
+                <td class="text-center">@a.NrPersoane</td>
+
+                <td>
+                    <a class="btn btn-sm btn-primary mb-1"
+                       asp-action="Create"
+                       asp-route-apartamentId="@a.Id">
+                        Adauga intretinere
+                    </a>
+                    <br />
+                    <a class="btn btn-sm btn-outline-secondary"
+                       asp-action="IstoricApartament"
+                       asp-route-apartamentId="@a.Id">
+                        Vezi toate
+                    </a>
+                </td>
+                <td>
+                    @if (intrAp == null || intrAp.Count == 0)
+                    {
+                        <span class="text-muted">Nu exista intretineri</span>
+                    }
+                    else
+                    {
+                        foreach (var i in intrAp)
+                        {
+                            <a asp-action="Detalii" asp-route-id="@i.Id">
+                                @($"{i.Luna:D2}/{i.An} - Total {i.Total} RON")
+                            </a>
+                            <br />
+                        }
+                    }
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+@section Scripts {
+    <script>
+        (function () {
+            const ddl = document.getElementById("filtruScara");
+            if (!ddl) return;
+
+            const rows = document.querySelectorAll("#tblApartamente tbody tr");
+
+            function aplicaFiltru() {
+                const val = (ddl.value || "").trim().toLowerCase();
+
+                rows.forEach(r => {
+                    const scara = (r.getAttribute("data-scara") || "").trim().toLowerCase();
+
+                    if (!val) {
+                        r.style.display = "";
+                        return;
+                    }
+
+                    r.style.display = (scara === val) ? "" : "none";
+                });
+            }
+
+            ddl.addEventListener("change", aplicaFiltru);
+        })();
+    </script>
+}

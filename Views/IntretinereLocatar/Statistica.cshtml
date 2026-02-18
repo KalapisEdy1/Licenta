@@ -1,0 +1,171 @@
+﻿@using AdministrareBlocMVC.Models
+@{
+    ViewData["Title"] = "Statistica";
+    int anCurent = ViewBag.AnCurent ?? DateTime.Now.Year;
+
+    var ap = ViewBag.Apartament as Apartament;
+    var scaraVal = ap?.Scara;
+    if (!string.IsNullOrWhiteSpace(scaraVal))
+    {
+        scaraVal = scaraVal.Trim();
+    }
+}
+
+<h1>Statistica - Cheltuieli pe an</h1>
+
+@if (ap != null)
+{
+    <div class="mb-2 text-muted">
+        Bloc: <b>@ap.Bloc?.Nume</b>
+        @if (!string.IsNullOrWhiteSpace(scaraVal))
+        {
+            <span> - Scara <b>@scaraVal</b></span>
+        }
+        (@ap.Bloc?.Adresa)
+        <br />
+        Apartament: <b>@ap.Numar</b>, Etaj <b>@ap.Etaj</b>
+    </div>
+}
+
+<div class="row mb-3">
+    <div class="col-md-3">
+        <label>An</label>
+        <input id="anPicker" class="form-control" value="@anCurent" />
+    </div>
+
+    <div class="col-md-3 d-flex align-items-end">
+        <button id="btnAfiseaza" class="btn btn-primary w-100">Afiseaza</button>
+    </div>
+</div>
+
+<div class="row g-3">
+    <div class="col-lg-6">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title mb-3">Distributie pe luni</h5>
+                <canvas id="pieChart" height="160"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-6">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title mb-3">Evolutie cheltuieli pe luni</h5>
+                <canvas id="barChart" height="160"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
+
+    <!-- jQuery UI Datepicker (selectie doar AN) -->
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.13.3/themes/base/jquery-ui.css" />
+    <script src="https://code.jquery.com/ui/1.13.3/jquery-ui.min.js"></script>
+
+    <style>
+        .ui-datepicker-calendar {
+            display: none !important;
+        }
+
+        .ui-datepicker-month {
+            display: none !important;
+        }
+    </style>
+
+    <script>
+        let pieChart;
+        let barChart;
+
+        // datepicker: doar an
+        $(function () {
+            $("#anPicker").datepicker({
+                changeYear: true,
+                showButtonPanel: true,
+                dateFormat: "yy",
+                onClose: function (dateText, inst) {
+                    const year = $("#ui-datepicker-div .ui-datepicker-year :selected").val();
+                    if (year) $(this).val(year);
+                },
+                beforeShow: function (input, inst) {
+                    const val = $(input).val();
+                    if (val && /^\d{4}$/.test(val)) {
+                        $(input).datepicker("setDate", new Date(parseInt(val), 0, 1));
+                    }
+                }
+            });
+
+            $("#anPicker").focus(function () {
+                $(".ui-datepicker-calendar").hide();
+            });
+        });
+
+        document.getElementById("btnAfiseaza").addEventListener("click", loadCharts);
+
+        async function loadCharts() {
+            const an = (document.getElementById("anPicker").value || "").trim();
+
+            if (!an || !/^\d{4}$/.test(an)) {
+                alert("Selecteaza un an valid (ex: 2026).");
+                return;
+            }
+
+            const res = await fetch(`/IntretinereLocatar/StatisticaAn?an=${an}`);
+            const data = await res.json();
+
+            const labels = data.labels || [];
+            const totals = data.totals || [];
+
+            if (pieChart) pieChart.destroy();
+            if (barChart) barChart.destroy();
+
+            const ctxPie = document.getElementById("pieChart");
+            pieChart = new Chart(ctxPie, {
+                type: 'pie',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: totals
+                    }]
+                },
+                options: {
+                    plugins: {
+                        datalabels: {
+                            formatter: (value, ctx) => {
+                                const arr = ctx.chart.data.datasets[0].data;
+                                const sum = arr.reduce((a, b) => a + b, 0);
+                                if (!sum || sum === 0) return '';
+                                const pct = (value * 100 / sum).toFixed(1) + '%';
+                                return (value > 0) ? pct : '';
+                            }
+                        },
+                        legend: { position: 'bottom' }
+                    }
+                },
+                plugins: [ChartDataLabels]
+            });
+
+            const ctxBar = document.getElementById("barChart");
+            barChart = new Chart(ctxBar, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: `Total / luna (${an})`,
+                        data: totals
+                    }]
+                },
+                options: {
+                    plugins: { legend: { display: true } },
+                    scales: { y: { beginAtZero: true } }
+                }
+            });
+        }
+
+        loadCharts();
+    </script>
+}

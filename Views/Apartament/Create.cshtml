@@ -1,0 +1,193 @@
+﻿@model AdministrareBlocMVC.ViewModels.ApartamentCreateEditViewModel
+
+@{
+    ViewData["Title"] = "Creaza apartament";
+}
+
+<h1>Creaza apartament</h1>
+
+<hr />
+<div class="row">
+    <div class="col-md-4">
+        <form asp-action="Create" method="post">
+            @Html.AntiForgeryToken()
+            <div asp-validation-summary="All" class="text-danger"></div>
+
+            <div class="form-group">
+                <label asp-for="Numar" class="control-label"></label>
+                <input asp-for="Numar" class="form-control" />
+                <span asp-validation-for="Numar" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                <label asp-for="Etaj" class="control-label"></label>
+                <input asp-for="Etaj" class="form-control" />
+                <span asp-validation-for="Etaj" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                <label asp-for="BlocId" class="control-label"></label>
+                <select asp-for="BlocId" class="form-control" asp-items="ViewBag.BlocId"></select>
+                <span asp-validation-for="BlocId" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                <label asp-for="Scara" class="control-label"></label>
+                <select asp-for="Scara" class="form-control" disabled>
+                    <option value="">-- fară scară / selectează bloc --</option>
+                </select>
+                <span asp-validation-for="Scara" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                <label asp-for="NumeProprietar" class="control-label"></label>
+                <input asp-for="NumeProprietar" class="form-control" />
+                <span asp-validation-for="NumeProprietar" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                <label asp-for="NumarCamere" class="control-label"></label>
+                <input asp-for="NumarCamere" class="form-control" />
+                <span asp-validation-for="NumarCamere" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                <label asp-for="SuprafataMp" class="control-label"></label>
+                <input asp-for="SuprafataMp" class="form-control" type="text" inputmode="decimal" />
+                <span asp-validation-for="SuprafataMp" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                <label asp-for="TelefonProprietar" class="control-label"></label>
+                <input asp-for="TelefonProprietar" class="form-control" />
+                <span asp-validation-for="TelefonProprietar" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                <label asp-for="NrPersoane" class="control-label"></label>
+                <input asp-for="NrPersoane" type="number" min="0" max="50" class="form-control" />
+                <span asp-validation-for="NrPersoane" class="text-danger"></span>
+            </div>
+
+            <hr class="mt-4" />
+
+            <div class="form-check mt-2">
+                <input class="form-check-input" type="checkbox" asp-for="AdaugaChirias" id="chkChirias" />
+                <label class="form-check-label fw-bold" for="chkChirias">
+                    Adauga chirias
+                </label>
+            </div>
+
+            <div id="chiriasFields" class="mt-2" style="display:none;">
+                <div class="form-group">
+                    <label asp-for="NumeChirias" class="control-label"></label>
+                    <input asp-for="NumeChirias" class="form-control" id="txtNumeChirias" />
+                    <span asp-validation-for="NumeChirias" class="text-danger"></span>
+                </div>
+
+                <div class="form-group mt-2">
+                    <label asp-for="TelefonChirias" class="control-label"></label>
+                    <input asp-for="TelefonChirias" class="form-control" id="txtTelChirias" />
+                    <span asp-validation-for="TelefonChirias" class="text-danger"></span>
+                </div>
+            </div>
+
+            <div class="form-group mt-3">
+                <input type="submit" value="Creaza" class="btn btn-primary" />
+                <a asp-action="Index" class="btn btn-secondary ms-2">Inapoi la blocuri</a>
+            </div>
+
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+
+    <script>
+        (function () {
+            if (!window.jQuery || !jQuery.validator) return;
+
+            const normalize = (v) => (v || "").toString().trim().replace(/\s/g, "").replace(",", ".");
+
+            jQuery.validator.methods.number = function (value, element) {
+                if (this.optional(element)) return true;
+                return /^-?\d+([.,]\d+)?$/.test(value);
+            };
+
+            jQuery.validator.methods.range = function (value, element, param) {
+                if (this.optional(element)) return true;
+                const n = parseFloat(normalize(value));
+                if (isNaN(n)) return false;
+                return n >= param[0] && n <= param[1];
+            };
+        })();
+
+        async function incarcaScari() {
+            const blocId = document.getElementById("BlocId").value;
+            const scaraSelect = document.getElementById("Scara");
+
+            scaraSelect.innerHTML = '<option value="">-- fara scara / selecteaza bloc --</option>';
+            scaraSelect.disabled = true;
+
+            if (!blocId) return;
+
+            const resp = await fetch(`/Apartament/GetScariByBloc?blocId=${blocId}`);
+            const scari = await resp.json();
+
+            if (!scari || scari.length === 0) {
+                scaraSelect.innerHTML = '<option value="">-- fara scara --</option>';
+                scaraSelect.value = "";
+                scaraSelect.disabled = true;
+                return;
+            }
+
+            scaraSelect.disabled = false;
+            scaraSelect.innerHTML = '<option value="">-- selecteaza scara --</option>';
+
+            for (const s of scari) {
+                const opt = document.createElement("option");
+                opt.value = s;
+                opt.text = s;
+                scaraSelect.appendChild(opt);
+            }
+        }
+
+        document.getElementById("BlocId").addEventListener("change", incarcaScari);
+        incarcaScari();
+
+        (function () {
+            const chk = document.getElementById("chkChirias");
+            const box = document.getElementById("chiriasFields");
+            const nume = document.getElementById("txtNumeChirias");
+            const tel = document.getElementById("txtTelChirias");
+
+            function hasValues() {
+                return (nume && nume.value.trim() !== "") || (tel && tel.value.trim() !== "");
+            }
+
+            function sync() {
+                box.style.display = chk.checked ? "block" : "none";
+            }
+
+            chk.addEventListener("change", function () {
+                if (!chk.checked && hasValues()) {
+                    alert("Nu poți debifa 'Adauga chirias' daca ai completat campurile.");
+                    chk.checked = true;
+                    return;
+                }
+
+                if (!chk.checked) {
+                    if (nume) nume.value = "";
+                    if (tel) tel.value = "";
+                }
+
+                sync();
+            });
+
+            sync();
+        })();
+    </script>
+}

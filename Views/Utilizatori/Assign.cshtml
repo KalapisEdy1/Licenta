@@ -1,0 +1,190 @@
+﻿@model AdministrareBlocMVC.ViewModels.AsignareApartamentViewModel
+@using AdministrareBlocMVC.Models
+
+@{
+    ViewData["Title"] = "Asigneaza apartament";
+    var ap = ViewBag.ApartamentCurent as Apartament;
+
+    var blocCurentId = ap?.BlocId ?? 0;
+    var scaraCurenta = ap?.Scara ?? "";
+    var apartamentCurentId = ap?.Id ?? 0;
+}
+
+<h1>Asigneaza apartament</h1>
+
+<div class="mb-2">
+    <b>Email:</b> @Model.Email
+</div>
+
+<div class="mb-3">
+    <b>Apartament curent:</b>
+    @if (ap == null)
+    {
+        <span class="text-muted">Neasignat</span>
+    }
+    else
+    {
+        var scaraTxt = string.IsNullOrWhiteSpace(ap.Scara) ? "" : $" - Scara {ap.Scara}";
+        <span>
+            <b>@ap.Bloc?.Nume@scaraTxt</b> (@ap.Bloc?.Adresa) — Ap <b>@ap.Numar</b> (Etaj <b>@ap.Etaj</b>)
+        </span>
+    }
+</div>
+
+<form asp-action="Assign" method="post">
+    @Html.AntiForgeryToken()
+    <input type="hidden" asp-for="UserId" />
+    <input type="hidden" asp-for="Email" />
+
+    <div asp-validation-summary="All" class="text-danger"></div>
+
+    <div class="form-group">
+        <label>Bloc</label>
+        <select asp-for="BlocId" class="form-control" asp-items="ViewBag.Blocuri" id="BlocId">
+            <option value="">-- neasignat --</option>
+        </select>
+        <span asp-validation-for="BlocId" class="text-danger"></span>
+    </div>
+
+    <div class="form-group mt-2">
+        <label>Scara</label>
+        <select asp-for="Scara" class="form-control" id="Scara" disabled>
+            <option value="">-- neasignat --</option>
+        </select>
+        <span asp-validation-for="Scara" class="text-danger"></span>
+    </div>
+
+    <div class="form-group mt-2">
+        <label>Apartament</label>
+        <select asp-for="ApartamentId" class="form-control" id="ApartamentId" disabled>
+            <option value="">-- neasignat --</option>
+        </select>
+        <span asp-validation-for="ApartamentId" class="text-danger"></span>
+    </div>
+
+    <button type="submit" class="btn btn-primary mt-3">Salveaza</button>
+    <a asp-action="Index" class="btn btn-secondary mt-3">Inapoi</a>
+</form>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+
+    <script>
+        const blocSelect = document.getElementById("BlocId");
+        const scaraSelect = document.getElementById("Scara");
+        const apSelect = document.getElementById("ApartamentId");
+
+        const preBlocId = @blocCurentId;
+        const preScara = "@(scaraCurenta.Replace("\"", "\\\""))";
+        const preApId = @apartamentCurentId;
+
+        function setNeasignatState() {
+            scaraSelect.innerHTML = '<option value="">-- neasignat --</option>';
+            apSelect.innerHTML = '<option value="">-- neasignat --</option>';
+            scaraSelect.disabled = true;
+            apSelect.disabled = true;
+
+            // ca sa fie clar ca nu e asignat
+            scaraSelect.value = "";
+            apSelect.value = "";
+        }
+
+        function setLoadingApartamente() {
+            apSelect.disabled = true;
+            apSelect.innerHTML = '<option value="">Se incarca...</option>';
+        }
+
+        async function loadScariAndApartamente(usePreselect = false) {
+            const blocId = blocSelect.value;
+
+            if (!blocId) {
+                setNeasignatState();
+                return;
+            }
+
+            const respScari = await fetch(`/Apartament/GetScariByBloc?blocId=${blocId}`);
+            const scari = await respScari.json();
+
+            if (!scari || scari.length === 0) {
+                scaraSelect.disabled = true;
+                scaraSelect.innerHTML = '<option value="">-- fara scara --</option>';
+                scaraSelect.value = "";
+            } else {
+                scaraSelect.disabled = false;
+                scaraSelect.innerHTML = "";
+
+                for (const s of scari) {
+                    const opt = document.createElement("option");
+                    opt.value = s;
+                    opt.text = s;
+                    scaraSelect.appendChild(opt);
+                }
+
+                if (usePreselect && preScara) {
+                    const found = [...scaraSelect.options].some(o => o.value.toLowerCase() === preScara.toLowerCase());
+                    scaraSelect.value = found ? preScara : scari[0];
+                } else {
+                    scaraSelect.value = scari[0];
+                }
+            }
+
+            setLoadingApartamente();
+            const respAp = await fetch(`/Apartament/GetByBloc?blocId=${blocId}`);
+            const apartamente = await respAp.json();
+
+            let list = apartamente || [];
+            if (scari && scari.length > 0) {
+                const sc = (scaraSelect.value || "").toLowerCase();
+                list = list.filter(a => (a.scara || "").toLowerCase() === sc);
+            }
+
+            apSelect.innerHTML = "";
+            if (!list || list.length === 0) {
+                apSelect.disabled = true;
+                apSelect.innerHTML = '<option value="">-- nu exista apartamente --</option>';
+                apSelect.value = "";
+                return;
+            }
+
+            for (const a of list) {
+                const opt = document.createElement("option");
+                opt.value = a.id;
+                opt.text = `Ap ${a.numar} (Etaj ${a.etaj ?? ""})`;
+                apSelect.appendChild(opt);
+            }
+
+            apSelect.disabled = false;
+
+            if (usePreselect && preApId) {
+                const found = [...apSelect.options].some(o => parseInt(o.value) === preApId);
+                apSelect.value = found ? preApId : apSelect.options[0].value;
+            } else {
+                apSelect.value = apSelect.options[0].value;
+            }
+        }
+
+        scaraSelect.addEventListener("change", async function () {
+            const blocId = blocSelect.value;
+            if (!blocId) return;
+
+            if (scaraSelect.disabled) return;
+
+            await loadScariAndApartamente(false);
+        });
+
+        blocSelect.addEventListener("change", async function () {
+            await loadScariAndApartamente(false);
+        });
+
+        (function init() {
+            if (preBlocId && preBlocId > 0) {
+                blocSelect.value = preBlocId.toString();
+                loadScariAndApartamente(true);
+            } else {
+                setNeasignatState();
+            }
+        })();
+    </script>
+}

@@ -1,0 +1,88 @@
+﻿@model AdministrareBlocMVC.Models.Intretinere
+
+@{
+    ViewData["Title"] = "Adauga intretinere";
+    var ap = ViewBag.Apartament as AdministrareBlocMVC.Models.Apartament;
+    var scaraTxt = (ap != null && !string.IsNullOrWhiteSpace(ap.Scara)) ? $" - Scara {ap.Scara}" : "";
+}
+
+<h1>Adauga intretinere</h1>
+
+<div class="mb-2">
+    <b>Bloc:</b> @ap?.Bloc?.Nume@scaraTxt <br />
+    <b>Apartament:</b> @ap?.Numar (Etaj @ap?.Etaj)
+</div>
+
+<form asp-action="Create" method="post">
+    @Html.AntiForgeryToken()
+    <div asp-validation-summary="All" class="text-danger"></div>
+
+    <input type="hidden" asp-for="ApartamentId" />
+
+    <div class="form-group">
+        <label for="lunaAnPicker">Luna/An</label>
+        <input id="lunaAnPicker" class="form-control" />
+        <small class="text-muted">Selecteaza luna si anul.</small>
+    </div>
+
+    <input type="hidden" asp-for="Luna" id="LunaHidden" />
+    <input type="hidden" asp-for="An" id="AnHidden" />
+
+    <button type="submit" class="btn btn-primary mt-3">Creeaza</button>
+    <a asp-action="ListaPeBloc" asp-route-id="@ap?.BlocId" class="btn btn-secondary mt-3">Inapoi</a>
+</form>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.13.3/themes/base/jquery-ui.css" />
+    <script src="https://code.jquery.com/ui/1.13.3/jquery-ui.min.js"></script>
+
+    <style>
+        .ui-datepicker-calendar {
+            display: none !important;
+        }
+    </style>
+
+    <script>
+        (function () {
+            const lunaInitiala = parseInt("@Model.Luna");
+            const anInitial = parseInt("@Model.An");
+
+            function setHidden(monthIndex0, year) {
+                // monthIndex0 e 0..11, in DB vrei 1..12
+                const luna = monthIndex0 + 1;
+                $("#LunaHidden").val(luna);
+                $("#AnHidden").val(year);
+
+                const mm = String(luna).padStart(2, "0");
+                $("#lunaAnPicker").val(`${mm}/${year}`);
+            }
+
+            $("#lunaAnPicker").datepicker({
+                changeMonth: true,
+                changeYear: true,
+                showButtonPanel: true,
+                dateFormat: "mm/yy",
+                onClose: function (dateText, inst) {
+                    const month = $("#ui-datepicker-div .ui-datepicker-month :selected").val();
+                    const year = $("#ui-datepicker-div .ui-datepicker-year :selected").val();
+                    if (month != null && year != null) {
+                        setHidden(parseInt(month), parseInt(year));
+                    }
+                },
+                beforeShow: function (input, inst) {
+                    const l = (lunaInitiala >= 1 && lunaInitiala <= 12) ? lunaInitiala : (new Date().getMonth() + 1);
+                    const y = (anInitial >= 2000 && anInitial <= 2100) ? anInitial : new Date().getFullYear();
+                    $(input).datepicker("setDate", new Date(y, l - 1, 1));
+                }
+            });
+
+            const l0 = (lunaInitiala >= 1 && lunaInitiala <= 12) ? (lunaInitiala - 1) : new Date().getMonth();
+            const y0 = (anInitial >= 2000 && anInitial <= 2100) ? anInitial : new Date().getFullYear();
+            setHidden(l0, y0);
+        })();
+    </script>
+}

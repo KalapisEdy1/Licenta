@@ -1,0 +1,50 @@
+﻿@model IEnumerable<AdministrareBlocMVC.Models.Bloc>
+
+@{
+    ViewData["Title"] = "Intretinere - Blocuri";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h1 class="mb-0">Blocuri</h1>
+    <form asp-action="Cautare" method="get" class="d-flex align-items-center gap-2">
+        <label for="q"
+               class="fw-bold text-dark mb-0"
+               style="white-space: nowrap; font-size: 1.05rem;">
+            Cautare apartament dupa Nume Proprietar:
+        </label>
+
+        <input id="q"
+               name="q"
+               class="form-control"
+               style="max-width: 260px;" />
+
+        <button type="submit" class="btn btn-primary">
+            Cauta
+        </button>
+    </form>
+
+</div>
+
+@if (Model == null || !Model.Any())
+{
+    <div class="alert alert-info">Nu exista blocuri.</div>
+}
+else
+{
+    <div class="row">
+        @foreach (var b in Model)
+        {
+            <div class="col-md-4 mb-3">
+                <a asp-action="ListaPeBloc" asp-route-id="@b.Id"
+                   class="text-decoration-none text-dark">
+                    <div class="card shadow-sm h-100">
+                        <div class="card-body">
+                            <h5 class="card-title mb-1">@b.Nume</h5>
+                            <p class="text-muted mb-0">@b.Adresa</p>
+                        </div>
+                    </div>
+                </a>
+            </div>
+        }
+    </div>
+}

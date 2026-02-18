@@ -1,0 +1,67 @@
+﻿@model AdministrareBlocMVC.ViewModels.ApartamentulMeuViewModel
+
+@{
+    ViewData["Title"] = "Apartamentul meu";
+}
+
+<h1>Apartamentul meu</h1>
+
+<div class="mb-3">
+    <b>Email:</b> @Model.Email
+</div>
+
+@if (Model.ApartamentId == null)
+{
+    <div class="alert alert-warning">
+        Nu ai un apartament asignat. Contacteaza administratorul.
+    </div>
+}
+else
+{
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <h5 class="card-title mb-3">Detalii apartament</h5>
+
+            <dl class="row mb-0">
+                <dt class="col-sm-4">Bloc</dt>
+                <dd class="col-sm-8">@Model.NumeBloc</dd>
+
+                @if (!string.IsNullOrWhiteSpace(Model.Scara))
+                {
+                    <dt class="col-sm-4">Scara</dt>
+                    <dd class="col-sm-8">@Model.Scara</dd>
+                }
+
+                <dt class="col-sm-4">Numar apartament</dt>
+                <dd class="col-sm-8">@Model.NumarApartament</dd>
+
+                <dt class="col-sm-4">Etaj</dt>
+                <dd class="col-sm-8">@Model.Etaj</dd>
+
+                <dt class="col-sm-4">Numar persoane</dt>
+                <dd class="col-sm-8">@Model.NrPersoane</dd>
+
+                <dt class="col-sm-4">Nume proprietar</dt>
+                <dd class="col-sm-8">@Model.NumeProprietar</dd>
+
+                <dt class="col-sm-4">Numar camere</dt>
+                <dd class="col-sm-8">@Model.NumarCamere</dd>
+
+                <dt class="col-sm-4">Suprafata (mp)</dt>
+                <dd class="col-sm-8">@Model.SuprafataMp</dd>
+
+                <dt class="col-sm-4">Telefon Proprietar</dt>
+                <dd class="col-sm-8">@Model.TelefonProprietar</dd>
+
+                @if (!string.IsNullOrWhiteSpace(Model.NumeChirias))
+                {
+                    <dt class="col-sm-4">Nume chirias</dt>
+                    <dd class="col-sm-8">@Model.NumeChirias</dd>
+
+                    <dt class="col-sm-4">Telefon chirias</dt>
+                    <dd class="col-sm-8">@Model.TelefonChirias</dd>
+                }
+            </dl>
+        </div>
+    </div>
+}

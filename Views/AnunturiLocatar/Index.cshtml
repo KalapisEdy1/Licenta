@@ -1,0 +1,36 @@
+﻿@model IEnumerable<AdministrareBlocMVC.Models.Anunt>
+
+@{
+    ViewData["Title"] = "Anunturi";
+    var bloc = ViewBag.Bloc as AdministrareBlocMVC.Models.Bloc;
+}
+
+<h1>Anunturi</h1>
+
+@if (ViewBag.Mesaj != null)
+{
+    <div class="alert alert-warning">@ViewBag.Mesaj</div>
+}
+else
+{
+    <div class="mb-2 text-muted">
+        Bloc: <b>@bloc?.Nume</b> (@bloc?.Adresa)
+    </div>
+
+    @if (!Model.Any())
+    {
+        <div class="alert alert-info">Nu exista anunturi pentru acest bloc.</div>
+    }
+    else
+    {
+        foreach (var a in Model)
+        {
+            <div class="border rounded p-3 mb-2">
+                <div class="text-muted" style="font-size: 0.9rem;">
+                    Publicat: <b>@a.DataCreare.ToString("dd.MM.yyyy HH:mm")</b>
+                </div>
+                <div style="white-space: pre-wrap;">@a.Mesaj</div>
+            </div>
+        }
+    }
+}

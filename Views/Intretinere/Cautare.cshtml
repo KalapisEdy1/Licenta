@@ -1,0 +1,67 @@
+﻿@model IEnumerable<AdministrareBlocMVC.Models.Apartament>
+@using AdministrareBlocMVC.Models
+
+@{
+    ViewData["Title"] = "Rezultate cautare";
+    var q = ViewBag.Query as string ?? "";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+        <h1 class="mb-0">Rezultate cautare</h1>
+        <div class="text-muted">Cautare: <b>@q</b></div>
+    </div>
+
+    <a asp-action="Index" class="btn btn-secondary">Inapoi la blocuri</a>
+</div>
+
+@if (Model == null || !Model.Any())
+{
+    <div class="alert alert-info">Nu s-au gasit apartamente pentru cautarea ta.</div>
+}
+else
+{
+    <table class="table table-striped table-bordered align-middle">
+        <thead class="table-light">
+            <tr>
+                <th>Bloc</th>
+                <th>Scara</th>
+                <th>Ap</th>
+                <th>Etaj</th>
+                <th>Nume Proprietar</th>
+                <th style="width: 220px;">Actiuni</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var a in Model)
+            {
+                <tr>
+                    <td>
+                        <b>@a.Bloc?.Nume</b>
+                        <div class="text-muted">@a.Bloc?.Adresa</div>
+                    </td>
+                    <td>@(string.IsNullOrWhiteSpace(a.Scara) ? "-" : a.Scara)</td>
+                    <td>@a.Numar</td>
+                    <td>@a.Etaj</td>
+                    <td>
+                        @a.NumeProprietar
+                    </td>
+                    <td>
+                        <a class="btn btn-sm btn-outline-primary"
+                           asp-action="ListaPeBloc"
+                           asp-route-id="@a.BlocId"
+                           asp-route-scara="@a.Scara">
+                            Vezi in bloc
+                        </a>
+
+                        <a class="btn btn-sm btn-primary"
+                           asp-action="Create"
+                           asp-route-apartamentId="@a.Id">
+                            Adauga intretinere
+                        </a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}

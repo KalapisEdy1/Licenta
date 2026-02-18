@@ -1,0 +1,107 @@
+﻿@model IEnumerable<AdministrareBlocMVC.Models.Apartament>
+
+@{
+    ViewData["Title"] = "Apartamente pe bloc";
+    var bloc = ViewBag.Bloc as AdministrareBlocMVC.Models.Bloc;
+
+    string[] scari = ViewBag.Scari as string[] ?? Array.Empty<string>();
+    string scaraSelectata = ViewBag.ScaraSelectata as string ?? "";
+}
+
+<div class="d-flex justify-content-between align-items-start mb-2">
+    <div>
+        <h1 class="mb-0">Apartamente - @bloc?.Nume</h1>
+        <p class="text-muted mb-0">@bloc?.Adresa</p>
+    </div>
+
+    @if (scari.Length > 0)
+    {
+        <form method="get" asp-action="ListaPeBloc" class="d-flex align-items-center gap-2">
+            <input type="hidden" name="id" value="@bloc?.Id" />
+
+            <label for="scaraSelect" class="fw-bold mb-0" style="white-space: nowrap;">
+                Filtru Scara:
+            </label>
+
+            <select id="scaraSelect"
+                    name="scara"
+                    class="form-select"
+                    style="min-width: 220px;"
+                    onchange="this.form.submit()">
+
+                <option value="">-- selecteaza o scara --</option>
+                @foreach (var s in scari)
+                {
+                    <option value="@s" selected="@(s == scaraSelectata)">@s</option>
+                }
+            </select>
+        </form>
+    }
+</div>
+
+<a asp-action="Index" class="btn btn-secondary mb-3">Inapoi la blocuri</a>
+
+@if (!Model.Any())
+{
+    <div class="alert alert-info">
+        Nu exista apartamente pentru filtrul ales.
+    </div>
+}
+else
+{
+    <table class="table table-striped table-bordered align-middle">
+        <thead class="table-light">
+            <tr>
+                <th>Numar</th>
+                <th>Etaj</th>
+                <th>Scara</th>
+                <th>Nume Proprietar</th>
+                <th>Camere</th>
+                <th>Suprafata (mp)</th>
+                <th>Numar Persoane</th> 
+                <th>Telefon Proprietar</th>
+                <th>Chirias(Nume si Nr Telefon)</th>
+                <th style="width: 180px;">Actiuni</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var a in Model)
+            {
+                <tr>
+                    <td>@a.Numar</td>
+                    <td>@a.Etaj</td>
+                    <td>@(string.IsNullOrWhiteSpace(a.Scara) ? "-" : a.Scara)</td>
+                    <td>@a.NumeProprietar</td>
+                    <td>@a.NumarCamere</td>
+                    <td>@a.SuprafataMp</td>
+
+                    <td>
+                        @(a.NrPersoane > 0 ? a.NrPersoane.ToString() : "-")
+                    </td>
+
+                    <td>@a.TelefonProprietar</td>
+
+                    <td>
+                        @if (a.Chirias == null)
+                        {
+                            <span>-</span>
+                        }
+                        else
+                        {
+                            <div>@a.Chirias.NumeChirias</div>
+                            <div>@a.Chirias.TelefonChirias</div>
+                        }
+                    </td>
+
+                    <td>
+                        <a asp-action="Details" class="btn btn-primary" asp-route-id="@a.Id">Detalii</a>
+                        <br /><br />
+                        <a asp-action="Edit" class="btn btn-warning" asp-route-id="@a.Id">Editeaza</a>
+                        <br /><br />
+                        <a asp-action="Delete" class="btn btn-danger" asp-route-id="@a.Id">Sterge</a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}

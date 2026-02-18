@@ -1,0 +1,64 @@
+﻿@model List<AdministrareBlocMVC.Models.Apartament>
+
+@{
+    ViewData["Title"] = "Căutare apartamente";
+    var q = ViewBag.Query as string ?? "";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+        <h1 class="mb-0">Rezultate căutare</h1>
+        <div class="text-muted">Căutare dupa nume: <b>@q</b></div>
+    </div>
+
+    <a asp-action="Index" class="btn btn-secondary">Înapoi la blocuri</a>
+</div>
+
+@if (Model == null || Model.Count == 0)
+{
+    <div class="alert alert-info">
+        Nu există apartamente pentru căutarea: <b>@q</b>
+    </div>
+}
+else
+{
+    <table class="table table-striped table-bordered align-middle">
+        <thead class="table-light">
+            <tr>
+                <th>Bloc</th>
+                <th>Scara</th>
+                <th>Ap</th>
+                <th>Etaj</th>
+                <th>Nume Proprietar</th>
+                <th>Telefon Proprietar</th>
+                <th style="width:180px;">Actiuni</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var a in Model)
+            {
+                <tr>
+                    <td>@a.Bloc?.Nume (@a.Bloc?.Adresa)</td>
+                    <td>@(string.IsNullOrWhiteSpace(a.Scara) ? "-" : a.Scara)</td>
+                    <td>@a.Numar</td>
+                    <td>@a.Etaj</td>
+                    <td>@(a.NumeProprietar ?? "-")</td>
+                    <td>@(a.TelefonProprietar ?? "-")</td>
+                    <td>
+                        <a class="btn btn-sm btn-primary"
+                           asp-action="Details"
+                           asp-route-id="@a.Id">Detalii</a>
+                           <br/> <br/>
+                        <a class="btn btn-sm btn-warning"
+                           asp-action="Edit"
+                           asp-route-id="@a.Id">Editeaza</a>
+                           <br/> <br/>
+                        <a class="btn btn-sm btn-danger"
+                           asp-action="Delete"
+                           asp-route-id="@a.Id">Sterge</a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}

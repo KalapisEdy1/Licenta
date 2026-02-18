@@ -1,0 +1,89 @@
+﻿@{
+    ViewData["Title"] = "Export Excel";
+}
+
+<h1>Export Excel - Intretinerea mea</h1>
+
+@if (TempData["Err"] != null)
+{
+    <div class="alert alert-danger">@TempData["Err"]</div>
+}
+
+<form id="exportForm" asp-action="Export" method="post" class="mt-3">
+    @Html.AntiForgeryToken()
+
+    <div class="row g-2 align-items-end">
+        <div class="col-md-3">
+            <label class="form-label">An</label>
+            <input id="anPicker"
+                   type="text"
+                   class="form-control"
+                   value="@DateTime.Now.Year"
+                   readonly />
+            <input type="hidden" name="an" id="anHidden" />
+        </div>
+
+        <div class="col-md-3 d-flex gap-2">
+            <button type="submit" class="btn btn-success flex-fill">
+                Export Excel
+            </button>
+
+            <a asp-action="Index" class="btn btn-secondary flex-fill">
+                Inapoi
+            </a>
+        </div>
+    </div>
+</form>
+
+@section Scripts {
+
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css" />
+    <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.min.js"></script>
+
+    <style>
+        /* doar an */
+        .ui-datepicker-calendar {
+            display: none !important;
+        }
+
+        .ui-datepicker-month {
+            display: none !important;
+        }
+    </style>
+
+    <script>
+        (function () {
+
+            $("#anPicker").datepicker({
+                changeYear: true,
+                showButtonPanel: true,
+                dateFormat: "yy",
+                defaultDate: new Date(new Date().getFullYear(), 0, 1),
+                onClose: function () {
+                    const year = $("#ui-datepicker-div .ui-datepicker-year :selected").val();
+                    if (year) {
+                        $(this).val(year);
+                    }
+                },
+                beforeShow: function (input) {
+                    const year = parseInt($(input).val(), 10) || new Date().getFullYear();
+                    $(this).datepicker("option", "defaultDate", new Date(year, 0, 1));
+                    $(this).datepicker("setDate", new Date(year, 0, 1));
+                }
+            });
+
+            document.getElementById("exportForm").addEventListener("submit", function (e) {
+                const an = document.getElementById("anPicker").value;
+
+                if (!an || isNaN(parseInt(an)) || parseInt(an) < 2010) {
+                    e.preventDefault();
+                    alert("Selecteaza un an valid (>= 2010).");
+                    return;
+                }
+
+                document.getElementById("anHidden").value = an;
+            });
+
+        })();
+    </script>
+}

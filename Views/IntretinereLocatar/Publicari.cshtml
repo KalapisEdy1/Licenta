@@ -1,0 +1,86 @@
+﻿@model List<AdministrareBlocMVC.Models.PublicareCheltuieliLunare>
+@using AdministrareBlocMVC.Models
+
+@{
+    ViewData["Title"] = "Publicari intretinere";
+    var bloc = ViewBag.Bloc as Bloc;
+
+    var ani = ViewBag.AniDisponibili as List<int>;
+    int? anSelectat = ViewBag.AnSelectat as int?;
+}
+
+<h1>Publicari intretinere</h1>
+
+@if (ViewBag.Mesaj != null)
+{
+    <div class="alert alert-warning">@ViewBag.Mesaj</div>
+}
+else
+{
+    <div class="mb-2 text-muted">
+        Bloc: <b>@bloc?.Nume</b> (@bloc?.Adresa)
+    </div>
+
+    <form method="get" class="row g-2 mb-3">
+        @if (bloc != null)
+        {
+            <input type="hidden" name="blocId" value="@bloc.Id" />
+        }
+
+        <div class="col-auto">
+            <select name="an" class="form-select">
+                <option value="">Toti anii</option>
+                @if (ani != null)
+                {
+                    foreach (var a in ani)
+                    {
+                        <option value="@a" selected="@(anSelectat == a)">@a</option>
+                    }
+                }
+            </select>
+        </div>
+
+        <div class="col-auto">
+            <button type="submit" class="btn btn-primary">Filtreaza</button>
+        </div>
+    </form>
+
+    <table class="table table-striped table-bordered align-middle">
+        <thead class="table-light">
+            <tr>
+                <th>Luna/An</th>
+                <th>Data colectare</th>
+                <th>Publicat la</th>
+                <th style="width:160px;"></th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (Model == null || Model.Count == 0)
+            {
+                <tr>
+                    <td colspan="4" class="text-center text-muted">Nu exista publicari inca.</td>
+                </tr>
+            }
+            else
+            {
+                foreach (var p in Model)
+                {
+                    <tr>
+                        <td>@($"{p.Luna:D2}/{p.An}")</td>
+                        <td>@p.DataColectare.ToString("dd.MM.yyyy HH:mm")</td>
+                        <td>@p.DataPublicare.ToString("dd.MM.yyyy HH:mm")</td>
+                        <td>
+                            <a class="btn btn-sm btn-success"
+                               asp-action="DescarcaPublicare"
+                               asp-route-id="@p.Id">
+                                Descarca Excel
+                            </a>
+                        </td>
+                    </tr>
+                }
+            }
+        </tbody>
+    </table>
+
+    <a class="btn btn-secondary" asp-action="Index">Inapoi</a>
+}

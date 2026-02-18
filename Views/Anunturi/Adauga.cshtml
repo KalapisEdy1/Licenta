@@ -1,0 +1,108 @@
+﻿@model AdministrareBlocMVC.ViewModels.AdaugaAnuntViewModel
+
+@{
+    ViewData["Title"] = "Adauga anunt";
+}
+
+<h1>Adauga anunt</h1>
+
+@if (TempData["Msg"] != null)
+{
+    <div class="alert alert-success">@TempData["Msg"]</div>
+}
+
+<form asp-action="Adauga" method="post">
+    @Html.AntiForgeryToken()
+    <div asp-validation-summary="All" class="text-danger"></div>
+
+    <div class="form-group">
+        <label asp-for="BlocId"></label>
+        <select asp-for="BlocId" class="form-control" asp-items="ViewBag.Blocuri" id="ddlBloc"></select>
+        <span asp-validation-for="BlocId" class="text-danger"></span>
+    </div>
+
+    <div class="form-group mt-2">
+        <label>Scară</label>
+        <select asp-for="Scara" class="form-control" id="ddlScara" data-selected="@Model?.Scara"></select>
+    </div>
+
+    <div class="form-group mt-2">
+        <label asp-for="Mesaj"></label>
+        <textarea asp-for="Mesaj" class="form-control" rows="5"></textarea>
+        <span asp-validation-for="Mesaj" class="text-danger"></span>
+    </div>
+
+    <button type="submit" class="btn btn-primary mt-3">Publica</button>
+</form>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+
+    <script>
+        (function () {
+            const ddlBloc = document.getElementById("ddlBloc");
+            const ddlScara = document.getElementById("ddlScara");
+
+            function renderScari(scari) {
+                ddlScara.innerHTML = "";
+
+                if (!scari || scari.length === 0) {
+                    const opt = document.createElement("option");
+                    opt.value = "";
+                    opt.textContent = "-- fara scara --";
+                    ddlScara.appendChild(opt);
+                    ddlScara.disabled = true;
+                    return;
+                }
+
+                const optAll = document.createElement("option");
+                optAll.value = "";
+                optAll.textContent = "-- toate scarile --";
+                ddlScara.appendChild(optAll);
+
+                scari.forEach(s => {
+                    const opt = document.createElement("option");
+                    opt.value = s;
+                    opt.textContent = `Scara ${s}`;
+                    ddlScara.appendChild(opt);
+                });
+
+                ddlScara.disabled = false;
+
+                const selected = (ddlScara.getAttribute("data-selected") || "").trim();
+                if (selected) {
+                    const options = Array.from(ddlScara.options);
+                    const found = options.find(o => (o.value || "").toLowerCase() === selected.toLowerCase());
+                    if (found) ddlScara.value = found.value;
+                } else {
+                    ddlScara.value = "";
+                }
+            }
+
+            async function loadScari() {
+                const blocId = ddlBloc.value;
+                if (!blocId) {
+                    renderScari([]);
+                    return;
+                }
+
+                try {
+                    const resp = await fetch(`/Anunturi/GetScariByBloc?blocId=${encodeURIComponent(blocId)}`);
+                    const scari = await resp.json();
+                    renderScari(scari);
+                } catch (e) {
+                    renderScari([]);
+                }
+            }
+
+            ddlBloc.addEventListener("change", function () {
+                ddlScara.setAttribute("data-selected", "");
+                loadScari();
+            });
+
+            loadScari();
+        })();
+    </script>
+}

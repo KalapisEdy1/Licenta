@@ -1,0 +1,32 @@
+﻿@model AdministrareBlocMVC.Models.Bloc
+
+@{
+    ViewData["Title"] = "Sterge Bloc";
+}
+
+<h1>Stergere Bloc</h1>
+
+<h3>Esti sigur ca vrei sa stergi acest bloc?</h3>
+<div>
+    <hr />
+    <dl class="row">
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.Nume)
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.Nume)
+        </dd>
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.Adresa)
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.Adresa)
+        </dd>
+    </dl>
+    
+    <form asp-action="Delete">
+        <input type="hidden" asp-for="Id" />
+        <input type="submit" value="Sterge" class="btn btn-danger" /> 
+        <a asp-action="Index" class="btn btn-secondary ms-2">Inapoi la lista</a>
+    </form>
+</div>

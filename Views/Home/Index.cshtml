@@ -1,0 +1,20 @@
+﻿@{
+    ViewData["Title"] = "Home Page";
+}
+@if (User.IsInRole("Admin"))
+{
+    <div class="mb-3">
+        <a asp-controller="Anunturi" asp-action="Adauga" class="text-decoration-none">
+            <div class="border rounded p-4 shadow-sm" style="max-width: 320px;">
+                <h4 class="mb-0">Adauga</h4>
+                <div class="text-muted">Publica un anunt pentru un bloc</div>
+            </div>
+        </a>
+    </div>
+}
+
+
+<div class="text-center">
+    <h1 class="display-4">Bloc Admin</h1>
+    <p> Solutia usoara si eficienta pentru blocul tau!</p>
+</div>
